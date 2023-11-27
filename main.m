@@ -9,16 +9,18 @@ exp_para.faceting = [1 0 0];
 exp_para.fitting_para = [1, 0.6, 15, 8, 0.8, 8];
 
 %% load sample and background dataset
-[igray_sample, phitheta, pos, img_sample] = drp_loader(exp_para,zeros(1,4),format='jpg',scale=0.2);
-[igray_back, ~, ~] = drp_loader(exp_para,pos,scale=0.2);
+scaleCoeff = 0.5;
+[igray_sample, phitheta, pos, img_sample] = drp_loader( ...
+    exp_para,zeros(1,4),format='jpg',scale=scaleCoeff);
+[igray_back, ~, ~] = drp_loader(exp_para,pos,scale=scaleCoeff);
 
 %% background subtratction applied
-igray_norm = bg_subtraction(igray_sample,igray_back,1.5);
-[n1,n2,n3] = size(igray_norm);
+igray_norm = bg_subtraction(igray_sample,igray_back,2);
+n3 = size(igray_norm,3);
 
 % convert into drps' stack
 % drp_original is in size of [n1 x n2 x th_num x ph_num]
-drp_original_02 = igray2drp(igray_norm,phitheta,exp_para);
+drp_original = igray2drp(igray_norm,phitheta,exp_para);
 % uisave('igray_norm','igray_norm')
 %% clear igray_norm igray_sample igray_back
 drp_sample = igray2drp(igray_sample,phitheta,exp_para);
@@ -98,9 +100,9 @@ for ii = 1:4
     title(sprintf("band peak ratio %.1f",bandIntensity(ii)),'FontSize',14,'FontWeight','bold')
 end
 %%
-% drpLib_sparce = DRPLibGenerator(5*degree, exp_para);
+drpLib = DRPLibGenerator(3*degree, exp_para);
 
-indexResult_layer01 = DirectDIEngine(drp_original_02, drpLib);
+indexResult = DirectDIEngine(drp_original, drpLib);
 
 
 function drpLib = DRPLibGenerator(ang_res, exp_para, options)
