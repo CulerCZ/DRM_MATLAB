@@ -6,8 +6,9 @@ exp_para.ph_num = 72;
 exp_para.ph_min = 0;
 exp_para.ph_max = 355;
 exp_para.faceting = [1 0 0];
-exp_para.fitting_para = [1, 0.6, 15, 8, 0.8, 8];
-
+% exp_para.fitting_para = [1, 0.6, 15, 8, 0.8, 8];
+% for nickel, the fitting parameters:
+exp_para.fitting_para = [1 0.5 25 6 0.8 8];
 %% load sample and background dataset
 scaleCoeff = 0.5;
 [igray_sample, phitheta, pos, img_sample] = drp_loader( ...
