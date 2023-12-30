@@ -1,6 +1,6 @@
 %% EBSD stitching
-rot = rotation.byAxisAngle(vector3d.Y,0*degree);
-ebsd_temp = rotate(ebsd,rot);
+rot = rotation.byAxisAngle(vector3d.X,0*degree);
+ebsd_temp = rotate(ebsd,rot,'keepXY');
 [grains, ebsd_temp.grainId] = calcGrains(ebsd_temp('indexed'),15*degree);
 figure, plot(ebsd_temp('indexed'),ebsd_temp('indexed').orientations,'micronbar','off');
 hold on
