@@ -1,6 +1,12 @@
 %% EBSD stitching
+<<<<<<< Updated upstream
 rot = rotation.byAxisAngle(vector3d.X,0*degree);
 ebsd_temp = rotate(ebsd,rot,'keepXY');
+=======
+rot = rotation.byAxisAngle(vector3d.X,20*degree);
+ebsd_temp = rotate(ebsd_20tilt,rot,'keepXY');
+% ebsd_temp = ebsd_20tilt_r;
+>>>>>>> Stashed changes
 [grains, ebsd_temp.grainId] = calcGrains(ebsd_temp('indexed'),15*degree);
 figure, plot(ebsd_temp('indexed'),ebsd_temp('indexed').orientations,'micronbar','off');
 hold on
@@ -32,6 +38,7 @@ figure, imshow(color_ebsd_temp,'border','tight')
 % this part of transformation needs careful consideration
 validRange = [floor(sizeEBSD(1)/4),floor(sizeEBSD(1)/4*3)];
 shiftVal = (find(isIndexedMap(:,validRange(1)),1) - find(isIndexedMap(:,validRange(2)),1)) / (validRange(2)-validRange(1));
+% shiftVal = 0;
 tformMat = [1 0 0; shiftVal 1 0; 0 0 1];
 tform = affinetform2d(tformMat);
 EUmap_ebsd = imwarp(EUmap_temp,tform,'nearest');
@@ -43,12 +50,20 @@ EUmap_ebsd = permute(EUmap_ebsd,[2 3 1]);
 figure, imshow(imwarp(color_ebsd_temp,tform,"nearest"),'Border','tight');
 % ----------------------------------------------------------------------------
 % plot scale bar according to EBSD dataset
-
-
-
+% ----------------------------------------------------------------------------
+%% if necessary, select the region of interest from plotted EBSD colormap
+figure(101)
+imshow(plot_ipf_map(EUmap_ebsd),'Border','tight')
+roi_ebsd = drawrectangle;
+pos_ebsd = roi_ebsd.Position;
+close 101
+EUmap_ebsd = imcrop(EUmap_ebsd,pos_ebsd);
+figure, imshow(plot_ipf_map(EUmap_ebsd),'Border','tight')
+isIndexedMap_ebsd = imcrop(isIndexedMap_ebsd,pos_ebsd);
+grainIdMap_ebsd = imcrop(grainIdMap_ebsd,pos_ebsd);
 %% register EBSD and DRM dataset and compare indexing error
 % register two datasets
-% eumap = indexResult.euMap;
+eumap = indexResult.euMap;
 colorDRMoriginal = plot_ipf_map(eumap);
 colorEBSDoriginal = plot_ipf_map(EUmap_ebsd);
 if ~exist("movingPoints",'var')
@@ -66,11 +81,11 @@ eulerEBSD = reshape(EUmap_ebsd,n1*n2,3);
 cs = ebsd_temp.CSList{2};
 oriDRM = orientation.byEuler(eulerDRM.*degree,cs);
 oriEBSD = orientation.byEuler(eulerEBSD.*degree,cs);
-rot = rotation.byAxisAngle(vector3d.X,180*degree);
+rot = rotation.byAxisAngle(vector3d.X,0*degree);
 oriEBSD = rot*oriEBSD;
 rot = rotation.byAxisAngle(vector3d.Y,180*degree);
 oriEBSD = rot*oriEBSD;
-rot = rotation.byAxisAngle(vector3d.Z,-1.5*degree);
+rot = rotation.byAxisAngle(vector3d.Z,270*degree);
 oriEBSD = rot*oriEBSD;
 
 misOriAngle = angle(oriDRM,oriEBSD,cs)./degree;
@@ -78,10 +93,10 @@ misOriMap = abs(reshape(misOriAngle,n1,n2)-3);
 misOriMap(~isIndexedMap_ebsd) = NaN;
 % plot indexing error mapping
 figure, imshow(misOriMap,Border="tight")
-colormap(jet)
+colormap(sky)
 clim([0 20])
 median(misOriMap(~isnan(misOriMap)),'all')
-colorbar
+% colorbar
 %% plot pixel-wise indexing error histogram
 figure,
 histogram(misOriMap,61,'BinLimits',[1 62],...
@@ -89,7 +104,7 @@ histogram(misOriMap,61,'BinLimits',[1 62],...
 set(gca,'LineWidth',1.5,'FontSize',14)
 xlabel('prediction error (deg)')
 xlim([1 62])
-% ylim([0 10e4])
+ylim([0 5000])
 ylabel('number of pixels')
 title('histogram of orientation error')
 
@@ -112,10 +127,11 @@ figure,
 histogram(misOriGrain,61,'BinLimits',[1 62],...
     'EdgeColor','k','EdgeAlpha',0.5,'FaceColor','#0072BD','FaceAlpha',1)
 set(gca,'LineWidth',1.5,'FontSize',14)
-xlabel('prediction error (deg)')
+% xlabel('prediction error (deg)') 
 xlim([1 62])
-ylabel('number of grains')
-title('histogram of orientation error')
+ylim([0 100])
+% ylabel('number of grains')
+% title('histogram of orientation error')
 %%
 figure, plotIPDF(oriEBSD,misOriAngle,vector3d.Z,'points',5e6,'MarkerSize',1)
 colormap("jet")
