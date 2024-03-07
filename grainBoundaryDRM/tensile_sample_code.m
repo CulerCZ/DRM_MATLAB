@@ -110,8 +110,138 @@ check_indexing_result(indexResult_top.euMap,drp_original_top,exp_para);
 figure, imshow(grain_map_front)
 figure, imshow(grain_map_back)
 
-%%
+%% select boundaries
+figure, imshowpair(boundary_map_front>0,boundary_map_back>0);
+hold on
+% imshow(boundary_map_back);
+gb_corr_selected = gb_corr(gb_corr(:,1) > 0 & gb_corr(:,2) > 0,:);
+for ii = 1:length(gb_corr_selected)
+    idx_1 = gb_corr_selected(ii,1);
+    idx_2 = gb_corr_selected(ii,2);
+%     if idx_2 == 0
+%         continue
+%     end
+    line([centroid_f(idx_1,2),centroid_b(idx_2,2)],...
+        [centroid_f(idx_1,1),centroid_b(idx_2,1)],'Color','w','LineWidth',3)
+end
+hold off
+% exportgraphics(gcf,fullfile(saveFolder,"GBpaired.tif"),Resolution=300)
 [GBC,EUmap_front,EUmap_back] = calc_gbc(gb_corr_selected,boundary_front,boundary_back,index_result_f,index_result_b);
+
+%%
+figure, hold on
+nn = length(GBC);
+cmap = colormap(hot);
+for ii = 1:length(GBC)
+    len_front = length(GBC{ii,1});
+    len_back = length(GBC{ii,2});
+    len_curve = max(len_front,len_back);
+    % front part
+%     [xx, yy] = interp_GB_trace(GBC{ii,1}(:,1), GBC{ii,1}(:,2), len_curve, smooth=false);
+%     GBC{ii,6} = [xx,yy];
+% %     line(xx,yy,'Color','r','LineWidth',2)
+% %     scatter(xx,yy,2,'filled','MarkerFaceColor',ii/nn*[1 0 0]+(1-ii/nn)*[0 0 1])
+%     cfrac = min(1,GBC{ii,5} / 62);
+%     scatter(yy,xx,3,'filled','MarkerFaceColor',cmap(fix(cfrac*length(cmap)),:))
+    [xx, yy] = interp_GB_trace(GBC{ii,2}(:,1), GBC{ii,2}(:,2), len_curve, smooth=false);
+    GBC{ii,7} = [xx,yy];
+%     line(xx,yy,'Color','b','LineWidth',2)
+    cfrac = min(1,GBC{ii,5} / 62);
+    scatter(yy,xx,3,'filled','MarkerFaceColor',cmap(fix(cfrac*length(cmap)),:))
+% %     workbar(ii/length(GBC),sprintf('processing %d / %d GB...',[ii length(GBC)]));
+end
+axis equal
+scale_ratio = 4; % mm in total
+xmax = size(boundary_front.grainIdxMap,1);
+ylim([0 xmax])
+ymax = size(boundary_front.grainIdxMap,2);
+xlim([0 ymax])
+box on
+set(gca,'LineWidth',1.5)
+% colormap(hot)
+% colorbar('Ticks',[0 1],'TickLabels',{'0','62'})
+% x_len = 41.5;
+% map_size = size(boundary_front.grainIdxMap);
+% [x_ticks, y_ticks, x_ticklabels, y_ticklabels] = generate_tick(x_len, map_size, interval=10);
+xticks([])
+% xticklabels(split(x_ticklabels))
+yticks([])
+
+
+%% plot grain boundary traces in 3-d
+thickpxlratio = 15;
+grainNum = 3;
+pixelBot = GBC{grainNum,6};
+[~,seq] = sort(pixelBot(:,1),'ascend');
+pixelBot = pixelBot(seq,:);
+pixelTop = GBC{grainNum,7};
+[~,seq] = sort(pixelTop(:,1),'ascend');
+pixelTop = pixelTop(seq,:);
+pixelTilt = GBC{grainNum,8};
+pixelNum = length(pixelBot);
+% for ii = 1:pixelNum-1
+% 
+% end
+xrange = range([pixelTop(:,1);pixelBot(:,1)]);
+yrange = range([pixelTop(:,2);pixelTop(:,2)]);
+xmin = min([pixelTop(:,1);pixelBot(:,1)]);
+ymin = min([pixelTop(:,2);pixelTop(:,2)]);
+voxels = zeros(xrange+1,yrange+1,thickpxlratio+1);
+
+% define a voxel on grain boundary plane or not
+for iix = 1:xrange+1
+    for iiy = 1:yrange+1
+        for iiz = 1:size(voxels,3)
+            ix = iix-1;
+            iy = iiy-1;
+            iz = iiz-1;
+            voxelCoord = [xmin+ix, ymin+iy, 0+iz];
+            disList = zeros(1,pixelNum);
+            for ii = 1:pixelNum
+                lineDir = [pixelTop(ii,:),thickpxlratio] - [pixelBot(ii,:),0];
+                toPointVec = voxelCoord - [pixelBot(ii,:),0];
+                proj_temp = (lineDir*toPointVec')/norm(lineDir)^2 * lineDir;
+                disList(ii) = norm(toPointVec - proj_temp);
+            end
+            voxels(iix,iiy,iiz) = min(disList);
+        end
+    end
+end
+
+% illustration of the boundary traces
+% figure,
+% tiledlayout(4,4,'TileSpacing','tight','Padding','tight')
+% for ii = 1:16
+%     nexttile(ii)
+%     imshow(voxels(:,:,ii)<=1)
+% end
+% exportgraphics(gcf,sprintf("/Users/chenyangzhu/Desktop/AlGBDRM/GBFigs/GBsection_%d.tif",grainNum),'Resolution',300)
+%
+[gbx, gby, gbz] = ind2sub(size(voxels),find(voxels<=1));
+gbVoxNum = length(gbx);
+figure, hold on
+for ii = 1:gbVoxNum
+    plotCube([gbx(ii),gby(ii),gbz(ii)],1,color=[173, 216, 230]/256,facealpha=0.717)
+end
+axis equal
+xlim([-1 xrange+1]) 
+zlim([-1 thickpxlratio+1])
+ylim([-1 yrange+1])
+set(gca,'visible','off')
+
+plotBox([0 0 0],size(voxels,1),size(voxels,2),size(voxels,3))
+view(-110,30)
+% exportgraphics(gcf,sprintf("/Users/chenyangzhu/Desktop/AlGBDRM/GBFigs/GB3d_%d.tif",grainNum),'Resolution',300)
+exportgraphics(gcf,fullfile(saveFolder,sprintf("GB_sample_3d_%d.tif",grainNum)),Resolution=300)
+%
+figure
+tiledlayout(1,2,'TileSpacing','tight','Padding','tight')
+nexttile(1)
+plot_boundary(boundary_front, gb_corr_selected(grainNum,1))
+nexttile(2)
+plot_boundary(boundary_back, gb_corr_selected(grainNum,2))
+% exportgraphics(gcf,sprintf("/Users/chenyangzhu/Desktop/AlGBDRM/GBFigs/GB2d_%d.tif",grainNum),'Resolution',300)
+exportgraphics(gcf,fullfile(saveFolder,sprintf("GB_sample_2d_%d.tif",grainNum)),Resolution=300)
 
 
 %% functions used in tensile_sample_code
