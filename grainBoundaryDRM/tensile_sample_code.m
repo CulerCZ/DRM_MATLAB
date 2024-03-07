@@ -168,10 +168,26 @@ set(gca,'LineWidth',1.5)
 xticks([])
 % xticklabels(split(x_ticklabels))
 yticks([])
-
+%%
+thickpxlratio = 15;
+for ii = 1:length(GBC)
+    trace_top = GBC{ii,6};
+    trace_bot = GBC{ii,7};
+    inclination = zeros(length(trace_top),3);
+    for jj = 1:length(trace_top)
+        x = trace_top(jj,1)-trace_bot(jj,1);
+        y = trace_top(jj,2)-trace_bot(jj,2);
+        z = thickpxlratio;
+        [az, ele, ~] = cart2sph(x,y,z);
+        inclination(jj,1) = az;
+        inclination(jj,2) = ele;
+        inclination(jj,3) = ele/degree;
+    end
+    GBC{ii,8} = inclination;
+end
 
 %% plot grain boundary traces in 3-d
-thickpxlratio = 15;
+% thickpxlratio = 15;
 grainNum = 1;
 pixelBot = GBC{grainNum,6};
 [~,seq] = sort(pixelBot(:,1),'ascend');
