@@ -58,14 +58,7 @@ drp_original_bot = igray2drp(igray_b,phitheta,exp_para);
 % uisave('igray_norm','igray_norm')
 
 %% quick check DRP and show DRP
-drp_measurement = check_measurement(img_sample_bot,drp_original_bot,exp_para); 
-%% show sim DRP
-% ori_temp = grain_left.meanOrientation;
-% eu1 = ori_temp.phi1/degree;
-% eu2 = ori_temp.Phi/degree;
-% eu3 = ori_temp.phi2/degree; bv
-figure('Position',[200,200,200,200])
-DRPdisp(DRPsim(49.5,45,30,exp_para),exp_para);
+check_measurement(img_sample_bot,drp_original_bot,exp_para); 
 
 %% generate DRP dictionary
 num_dic = 10000;
@@ -110,7 +103,7 @@ check_indexing_result(indexResult_top.euMap,drp_original_top,exp_para);
 figure, imshow(grain_map_front)
 figure, imshow(grain_map_back)
 
-%% select boundaries
+% select boundaries
 [gb_corr, centroid_f, centroid_b] = pair_gbn(boundary_front, boundary_back, n_out=3);
 
 figure, imshowpair(boundary_map_front>0,boundary_map_back>0);
@@ -130,7 +123,7 @@ hold off
 % exportgraphics(gcf,fullfile(saveFolder,"GBpaired.tif"),Resolution=300)
 [GBC,EUmap_front,EUmap_back] = calc_gbc(gb_corr_selected,boundary_front,boundary_back,index_result_top,index_result_bot);
 
-%%
+%
 figure, hold on
 nn = length(GBC);
 cmap = colormap(hot);
@@ -168,8 +161,8 @@ set(gca,'LineWidth',1.5)
 xticks([])
 % xticklabels(split(x_ticklabels))
 yticks([])
-%%
-thickpxlratio = 15;
+%
+thickpxlratio = ceil(size(drp_original_top,1)/15);
 for ii = 1:length(GBC)
     trace_top = GBC{ii,6};
     trace_bot = GBC{ii,7};
@@ -188,7 +181,7 @@ end
 
 %% plot grain boundary traces in 3-d
 % thickpxlratio = 15;
-grainNum = 1;
+grainNum = 47;
 pixelBot = GBC{grainNum,6};
 [~,seq] = sort(pixelBot(:,1),'ascend');
 pixelBot = pixelBot(seq,:);
@@ -250,16 +243,16 @@ set(gca,'visible','off')
 plotBox([0 0 0],size(voxels,1),size(voxels,2),size(voxels,3))
 view(-110,30)
 % exportgraphics(gcf,sprintf("/Users/chenyangzhu/Desktop/AlGBDRM/GBFigs/GB3d_%d.tif",grainNum),'Resolution',300)
-exportgraphics(gcf,fullfile(saveFolder,sprintf("GB_sample_3d_%d.tif",grainNum)),Resolution=300)
+% exportgraphics(gcf,fullfile(saveFolder,sprintf("GB_sample_3d_%d.tif",grainNum)),Resolution=300)
 %
-figure
-tiledlayout(1,2,'TileSpacing','tight','Padding','tight')
-nexttile(1)
-plot_boundary(boundary_front, gb_corr_selected(grainNum,1))
-nexttile(2)
-plot_boundary(boundary_back, gb_corr_selected(grainNum,2))
+% figure
+% tiledlayout(1,2,'TileSpacing','tight','Padding','tight')
+% nexttile(1)
+% plot_boundary(boundary_front, gb_corr_selected(grainNum,1))
+% nexttile(2)
+% plot_boundary(boundary_back, gb_corr_selected(grainNum,2))
 % exportgraphics(gcf,sprintf("/Users/chenyangzhu/Desktop/AlGBDRM/GBFigs/GB2d_%d.tif",grainNum),'Resolution',300)
-exportgraphics(gcf,fullfile(saveFolder,sprintf("GB_sample_2d_%d.tif",grainNum)),Resolution=300)
+% exportgraphics(gcf,fullfile(saveFolder,sprintf("GB_sample_2d_%d.tif",grainNum)),Resolution=300)
 
 
 %% functions used in tensile_sample_code
