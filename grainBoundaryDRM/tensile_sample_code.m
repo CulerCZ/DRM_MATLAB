@@ -128,7 +128,7 @@ for ii = 1:length(gb_corr_selected)
 end
 hold off
 % exportgraphics(gcf,fullfile(saveFolder,"GBpaired.tif"),Resolution=300)
-[GBC,EUmap_front,EUmap_back] = calc_gbc(gb_corr_selected,boundary_front,boundary_back,index_result_f,index_result_b);
+[GBC,EUmap_front,EUmap_back] = calc_gbc(gb_corr_selected,boundary_front,boundary_back,index_result_top,index_result_bot);
 
 %%
 figure, hold on
@@ -139,8 +139,8 @@ for ii = 1:length(GBC)
     len_back = length(GBC{ii,2});
     len_curve = max(len_front,len_back);
     % front part
-%     [xx, yy] = interp_GB_trace(GBC{ii,1}(:,1), GBC{ii,1}(:,2), len_curve, smooth=false);
-%     GBC{ii,6} = [xx,yy];
+    [xx, yy] = interp_GB_trace(GBC{ii,1}(:,1), GBC{ii,1}(:,2), len_curve, smooth=false);
+    GBC{ii,6} = [xx,yy];
 % %     line(xx,yy,'Color','r','LineWidth',2)
 % %     scatter(xx,yy,2,'filled','MarkerFaceColor',ii/nn*[1 0 0]+(1-ii/nn)*[0 0 1])
 %     cfrac = min(1,GBC{ii,5} / 62);
@@ -172,7 +172,7 @@ yticks([])
 
 %% plot grain boundary traces in 3-d
 thickpxlratio = 15;
-grainNum = 3;
+grainNum = 1;
 pixelBot = GBC{grainNum,6};
 [~,seq] = sort(pixelBot(:,1),'ascend');
 pixelBot = pixelBot(seq,:);
