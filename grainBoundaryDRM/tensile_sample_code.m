@@ -104,6 +104,17 @@ drp_tmp = drp_encode(AE_DRM,drp_predicted,exp_para);
 check_indexing_result(indexResult_top.euMap,drp_original_top,exp_para);
 
 
+%% create boundary information
+[boundary_front,boundary_map_front,grain_map_front,icanny_front] = calc_gb(drp_f,exp_para);
+[boundary_back,boundary_map_back,grain_map_back,icanny_back] = calc_gb(drp_b,exp_para);
+figure, imshow(grain_map_front)
+figure, imshow(grain_map_back)
+
+%%
+[GBC,EUmap_front,EUmap_back] = calc_gbc(gb_corr_selected,boundary_front,boundary_back,index_result_f,index_result_b);
+
+
+%% functions used in tensile_sample_code
 function drpLib = DRPLibGenerator(ang_res, exp_para, options)
 % this function requires MTEX package for generation of orientation library
     arguments
