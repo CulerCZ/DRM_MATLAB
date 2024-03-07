@@ -1,12 +1,9 @@
 %% EBSD stitching
-<<<<<<< Updated upstream
 rot = rotation.byAxisAngle(vector3d.X,0*degree);
 ebsd_temp = rotate(ebsd,rot,'keepXY');
-=======
 rot = rotation.byAxisAngle(vector3d.X,20*degree);
 ebsd_temp = rotate(ebsd_20tilt,rot,'keepXY');
 % ebsd_temp = ebsd_20tilt_r;
->>>>>>> Stashed changes
 [grains, ebsd_temp.grainId] = calcGrains(ebsd_temp('indexed'),15*degree);
 figure, plot(ebsd_temp('indexed'),ebsd_temp('indexed').orientations,'micronbar','off');
 hold on
@@ -78,17 +75,18 @@ figure, imshowpair(plot_ipf_map(EUmap_trans),colorEBSDoriginal,'montage')
 [n1,n2,~] = size(EUmap_ebsd);
 eulerDRM = reshape(EUmap_trans,n1*n2,3);
 eulerEBSD = reshape(EUmap_ebsd,n1*n2,3);
-cs = ebsd_temp.CSList{2};
+% cs = ebsd_temp.CSList{2};
+cs = crystalSymmetry('cubic');
 oriDRM = orientation.byEuler(eulerDRM.*degree,cs);
 oriEBSD = orientation.byEuler(eulerEBSD.*degree,cs);
 rot = rotation.byAxisAngle(vector3d.X,0*degree);
 oriEBSD = rot*oriEBSD;
-rot = rotation.byAxisAngle(vector3d.Y,180*degree);
+rot = rotation.byAxisAngle(vector3d.Y,30*degree);
 oriEBSD = rot*oriEBSD;
-rot = rotation.byAxisAngle(vector3d.Z,270*degree);
+rot = rotation.byAxisAngle(vector3d.Z,90*degree);
 oriEBSD = rot*oriEBSD;
 
-misOriAngle = angle(oriDRM,oriEBSD,cs)./degree;
+misOriAngle = angle(transpose(oriDRM),oriEBSD,cs)./degree;
 misOriMap = abs(reshape(misOriAngle,n1,n2)-3);
 misOriMap(~isIndexedMap_ebsd) = NaN;
 % plot indexing error mapping
@@ -162,7 +160,7 @@ colormap("jet")
 %% rotating back to sample coordinates
 eulerDRM = reshape(EUmap_trans,n1*n2,3);
 oriDRM = orientation.byEuler(eulerDRM.*degree,cs);
-rot = rotation.byAxisAngle(vector3d.Y,-22*degree);
+rot = rotation.byAxisAngle(vector3d.Y,-30*degree);
 oriDRM = rot*oriDRM;
 eulerDRM_sc = reshape([oriDRM.phi1, oriDRM.Phi, oriDRM.phi2]./degree, n1, n2, 3);
 figure, imshow(plot_ipf_map(eulerDRM_sc),'Border','tight')

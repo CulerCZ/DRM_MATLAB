@@ -1,5 +1,5 @@
 cs = crystalSymmetry('cubic');
-ori_1deg = equispacedSO3Grid(cs,'resolution',2*degree);
+ori_1deg = equispacedSO3Grid(cs,'resolution',1*degree);
 
 % in a grain with orientation, the direction in crystal reference frame has
 % the corresponding direction in specimen reference system
@@ -23,7 +23,7 @@ text(0,1.3,0,'Y',"FontSize",14)
 text(0,0,1.3,'Z',"FontSize",14)
 view(130,15)
 
-exportgraphics(gcf,"/Users/chenyangzhu/Desktop/datasetTemp/peakFZ_001.tif",'Resolution',600)
+% exportgraphics(gcf,"/Users/chenyangzhu/Desktop/datasetTemp/peakFZ_001.tif",'Resolution',600)
 
 %% plot peak positions
 th_fz = r_001.theta;
@@ -90,11 +90,11 @@ text(1.3,0,0,'X',"FontSize",14)
 text(0,1.3,0,'Y',"FontSize",14)
 text(0,0,1.3,'Z',"FontSize",14)
 view(130,15)
-exportgraphics(gcf,"/Users/chenyangzhu/Desktop/datasetTemp/refPeakFZ_all.tif",'Resolution',600)
+% exportgraphics(gcf,"/Users/chenyangzhu/Desktop/datasetTemp/refPeakFZ_all.tif",'Resolution',600)
 
 
 cs = crystalSymmetry('cubic');
-ori_1deg = equispacedSO3Grid(cs,'resolution',3*degree);
+ori_1deg = equispacedSO3Grid(cs,'resolution',2*degree);
 
 % in a grain with orientation, the direction in crystal reference frame has
 % the corresponding direction in specimen reference system
@@ -123,7 +123,7 @@ text(0,1.3,0,'Y',"FontSize",14)
 text(0,0,1.3,'Z',"FontSize",14)
 view(125,15)
 
-exportgraphics(gcf,"/Users/chenyangzhu/Desktop/datasetTemp/peakFZ_111only.tif",'Resolution',600)
+% exportgraphics(gcf,"/Users/chenyangzhu/Desktop/datasetTemp/peakFZ_111only.tif",'Resolution',600)
 
 %% reflectance peak distribution
 th_fz = r_111.theta;

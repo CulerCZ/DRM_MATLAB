@@ -6,9 +6,9 @@ exp_para.ph_num = 72;
 exp_para.ph_min = 0;
 exp_para.ph_max = 355;
 exp_para.faceting = [1 0 0];
-% exp_para.fitting_para = [1, 0.6, 15, 8, 0.8, 8];
+exp_para.fitting_para = [1, 0.6, 20, 6, 0.8, 8];
 % for nickel, the fitting parameters:
-exp_para.fitting_para = [1 0.5 25 6 0.8 8];
+% exp_para.fitting_para = [1 0.6 25 6 0.8 8];
 %% load sample and background dataset
 scaleCoeff = 0.5;
 [igray_sample, phitheta, pos, img_sample] = drp_loader( ...
@@ -31,7 +31,7 @@ drp_sample = igray2drp(igray_sample,phitheta,exp_para);
 % y = 1500;
 % figure, DRPdisp(drp_original{600,600},exp_para);
 % clear x y
-drp_measurement = check_measurement(img_sample,drp_original_02,exp_para); 
+drp_measurement = check_measurement(img_sample,drp_original,exp_para); 
 %% show sim DRP
 % ori_temp = grain_left.meanOrientation;
 % eu1 = ori_temp.phi1/degree;
@@ -101,7 +101,7 @@ for ii = 1:4
     title(sprintf("band peak ratio %.1f",bandIntensity(ii)),'FontSize',14,'FontWeight','bold')
 end
 %%
-drpLib = DRPLibGenerator(3*degree, exp_para);
+% drpLib = DRPLibGenerator(3*degree, exp_para);
 
 indexResult = DirectDIEngine(drp_original, drpLib);
 
