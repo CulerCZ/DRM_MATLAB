@@ -747,3 +747,40 @@ function [plane] = trace2plane(trace_top, trace_bot, thickness)
         end
     end
 end
+
+
+
+function plotCube(center, l, options)
+    arguments
+        center (1,3) double
+        l (1,1) double
+        options.color (1,3) double = [77 77 77]/256
+        options.facealpha (1,1) double = 0.6
+    end
+    V1=[-1;  1; 1; -1; -1;  1; 1; -1;];
+    V2=[-1; -1; 1;  1; -1; -1; 1;  1;];
+    V3=[-1; -1;-1; -1;  1;  1; 1;  1;];
+    F=[1 2 3 4; 1 2 6 5; 2 3 7 6; 3 4 8 7; 4 1 5 8; 5 6 7 8;];
+    Vertices=[V1 V2 V3]*l/2 + center;
+    patch(gca,'Faces',F,'Vertices',Vertices,'FaceColor',options.color, ...
+        'FaceAlpha',options.facealpha,'EdgeColor','k','LineWidth',1); 
+
+end
+
+function plotBox(lcorner, a, b, c, options)
+    arguments
+        lcorner (1,3) double
+        a (1,1) double
+        b (1,1) double
+        c (1,1) double
+        options.color (1,3) double = [1 1 1]
+        options.facealpha (1,1) double = 0.4
+    end
+    V1=[0; a; 0; a; 0; a; 0; a];
+    V2=[0; 0; b; b; 0; 0; b; b];
+    V3=[0; 0; 0; 0; c; c; c; c];
+    F=[1 2 4 3; 1 2 6 5; 2 4 8 6; 4 3 7 8; 3 1 5 7; 5 6 8 7;];
+    Vertices=[V1 V2 V3] + lcorner;
+    patch(gca,'Faces',F,'Vertices',Vertices,'FaceColor',options.color, ...
+        'FaceAlpha',options.facealpha,'EdgeColor','k','LineWidth',3); 
+end
