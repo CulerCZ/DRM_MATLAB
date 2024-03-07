@@ -16,19 +16,19 @@ scaleCoeff = 0.5;
 [igray_sample_bot, ~, pos_bot, img_sample_bot] = drp_loader( ...
     exp_para,zeros(1,4),format='jpg',scale=scaleCoeff);
 %%
-[movingPoints, refPoints] = cpselect(img_sample_back,img_sample_top,'Wait',true);
+[movingPoints, refPoints] = cpselect(img_sample_bot,img_sample_top,'Wait',true);
 tform_2surfaces = fitgeotrans(movingPoints,refPoints,'affine');
 output_region = imref2d(size(img_sample_top));
-img_back_trans = imwarp(img_sample_back,tform_2surfaces,'nearest','OutputView',output_region);
+img_back_trans = imwarp(img_sample_bot,tform_2surfaces,'nearest','OutputView',output_region);
 figure(11), imshowpair(img_sample_top,img_back_trans,'montage')
-exportgraphics(gcf,fullfile(saveFolder,"region_registering_r.tiff"),Resolution=300)
+% exportgraphics(gcf,fullfile(saveFolder,"region_registering_r.tiff"),Resolution=300)
 close(11)
-igray_sample_bot_trans = igray_sample_bot;
+igray_sample_bot_trans = igray_sample_top;
 for ii = 1:size(igray_sample_bot,3)
     back_temp = igray_sample_bot(:,:,ii);
     igray_sample_bot_trans(:,:,ii) = imwarp(back_temp,tform_2surfaces,'nearest','OutputView',output_region);
     if mod(ii,100)==0
-        fprintf("finish %d / %d ...\n",[ii,size(igray_back,3)]);
+        fprintf("finish %d / %d ...\n",[ii,size(igray_sample_bot,3)]);
     end
 end
 clear back_temp
@@ -46,7 +46,7 @@ for ii = 1:size(igray_sample_top,3)
     igray_f(:,:,ii) = imcrop(igray_sample_top(:,:,ii),pos_crop);
     igray_b(:,:,ii) = imcrop(igray_sample_bot_trans(:,:,ii),pos_crop);
     if mod(ii,100)==0
-        fprintf("finish %d / %d ...\n",[ii,size(igray_back,3)]);
+        fprintf("finish %d / %d ...\n",[ii,size(igray_sample_bot,3)]);
     end
 end
 
@@ -89,53 +89,17 @@ clear hiddenSize1
 index_result_top = IndexingEngine(drp_original_top,AE_DRM,exp_para,drpDic,euDic,rotDic);
 index_result_bot = IndexingEngine(drp_original_bot,AE_DRM,exp_para,drpDic,euDic,rotDic);
 figure, imshow(plot_ipf_map(index_result_top.EUmap),'Border','tight')
-exportgraphics(gcf,"D:\DRM\rawData\groupB_Sample04_top\ipf_top.tif",Resolution=300)
-close all
+% exportgraphics(gcf,"D:\DRM\rawData\groupB_Sample04_top\ipf_top.tif",Resolution=300)
+% close all
 figure, imshow(plot_ipf_map(index_result_bot.EUmap),'Border','tight')
-exportgraphics(gcf,"D:\DRM\rawData\groupB_Sample04_top\ipf_bot.tif",Resolution=300)
-close all
-
-%% filter non-indexed pixels
-% background pixels
-[n1,n2] = size(drp_original);
-% non_index = ones(n1,n2,'logical'); % 1 for indexed; 0 for non-indexed
-index_sum = zeros(n1,n2);
-for ii = 1:n1
-    for jj = 1:n2
-        index_num(ii,jj) = sum(drp_original{ii,jj},'all');
-    end
-end
-non_index_bg = index_num > 3e4;
-figure, imshow(non_index_bg)
-% poorly-indexed pixels
-non_index_poor = index_result.quality < prctile(index_result.quality,95);
-
-non_index = non_index_poor & non_index_bg; 
-figure, imshow(non_index)
-%% plot results
-% [ebsd_DRM] = plot_ipf_DRM(index_result.EUmap, 'Ni', nonindex=ones(size(index_result.EUmap)));
-figure, imshow(plot_ipf_map(index_result_bot.EUmap))
+% exportgraphics(gcf,"D:\DRM\rawData\groupB_Sample04_top\ipf_bot.tif",Resolution=300)
+% close all
 %% check indexing results
 [drp_measurement, drp_predicted, x, y] = check_indexing_result(index_result.EUmap,drp_original,exp_para);
 %%
 drp_out = drp_encode(AE_DRM,drp_measurement,exp_para);
 drp_tmp = drp_encode(AE_DRM,drp_predicted,exp_para);
 
-%% direct indexing without autoencoder
-bandIntensity = [0.1 0.3 0.5 0.7];
-for ii = 1:4
-    exp_para.fitting_para(2) = bandIntensity(ii);
-    drpLib = DRPLibGenerator(5*degree, exp_para);
-    
-    indexResult = DirectDIEngine(drp_original, drpLib);
-    figure, imshow(plot_ipf_map(indexResult.euMap));
-    title(sprintf("band peak ratio %.1f",bandIntensity(ii)),'FontSize',14,'FontWeight','bold')
-end
-%% generate DRP dictionary
-drpLib = DRPLibGenerator(3*degree, exp_para);
-%% dictionary indexing
-% indexResult_top = DirectDIEngine(drp_original_top, drpLib);
-indexResult_bot = DirectDIEngine(drp_original_bot,drpLib);
 %% check indexing outcome
 check_indexing_result(indexResult_top.euMap,drp_original_top,exp_para);
 
