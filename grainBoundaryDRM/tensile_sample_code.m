@@ -111,6 +111,8 @@ figure, imshow(grain_map_front)
 figure, imshow(grain_map_back)
 
 %% select boundaries
+[gb_corr, centroid_f, centroid_b] = pair_gbn(boundary_front, boundary_back, n_out=3);
+
 figure, imshowpair(boundary_map_front>0,boundary_map_back>0);
 hold on
 % imshow(boundary_map_back);
