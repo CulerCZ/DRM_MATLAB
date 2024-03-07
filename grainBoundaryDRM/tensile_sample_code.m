@@ -105,8 +105,8 @@ check_indexing_result(indexResult_top.euMap,drp_original_top,exp_para);
 
 
 %% create boundary information
-[boundary_front,boundary_map_front,grain_map_front,icanny_front] = calc_gb(drp_f,exp_para);
-[boundary_back,boundary_map_back,grain_map_back,icanny_back] = calc_gb(drp_b,exp_para);
+[boundary_front,boundary_map_front,grain_map_front,icanny_front] = calc_gb(drp_original_top,exp_para);
+[boundary_back,boundary_map_back,grain_map_back,icanny_back] = calc_gb(drp_original_bot,exp_para);
 figure, imshow(grain_map_front)
 figure, imshow(grain_map_back)
 
