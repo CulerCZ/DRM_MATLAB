@@ -77,45 +77,94 @@ AE_DRM = trainAutoencoder(drpDic,hiddenSize1, ...
     'ScaleData', false, ...
     'UseGPU', false);
 clear hiddenSize1
+%% clearn the drp_original for non-indexed pixels
+indexed_top = filterIndexed(drp_original_top,val_thres=2.2e4);
+figure, imshow(indexed_top)
+indexed_bot = filterIndexed(drp_original_bot);
+figure, imshow(indexed_bot)
 %%
 % start indexing engine and obtain final result
-index_result_top = IndexingEngine(drp_original_top,AE_DRM,exp_para,drpDic,euDic,rotDic);
-index_result_bot = IndexingEngine(drp_original_bot,AE_DRM,exp_para,drpDic,euDic,rotDic);
-figure, imshow(plot_ipf_map(index_result_top.EUmap),'Border','tight')
-% exportgraphics(gcf,"D:\DRM\rawData\groupB_Sample04_top\ipf_top.tif",Resolution=300)
-% close all
-figure, imshow(plot_ipf_map(index_result_bot.EUmap),'Border','tight')
-% exportgraphics(gcf,"D:\DRM\rawData\groupB_Sample04_top\ipf_bot.tif",Resolution=300)
+% index_result_top = IndexingEngine(drp_original_top,AE_DRM,exp_para,drpDic,euDic,rotDic);
+% index_result_bot = IndexingEngine(drp_original_bot,AE_DRM,exp_para,drpDic,euDic,rotDic);
+ipfz_top = permute(plot_ipf_map(index_result_top.EUmap),[3 1 2]);
+for ii = 1:3
+    ipfz_top(ii,~indexed_top) = 0;
+end
+ipfz_top = permute(ipfz_top,[2 3 1]);
+figure, imshow(ipfz_top,'Border','tight')
+exportgraphics(gcf,"D:\DRM\rawData\groupB_Sample04_top\ipf_top.tif",Resolution=300)
+%% close all
+ipfz_bot = permute(plot_ipf_map(index_result_bot.EUmap),[3 1 2]);
+for ii = 1:3
+    ipfz_bot(ii,~indexed_top) = 0;
+end
+ipfz_bot = permute(ipfz_bot,[2 3 1]);
+figure, imshow(ipfz_bot,'Border','tight')
+exportgraphics(gcf,"D:\DRM\rawData\groupB_Sample04_top\ipf_bot.tif",Resolution=300)
 % close all
 %% check indexing results
 [drp_measurement, drp_predicted, x, y] = check_indexing_result(index_result.EUmap,drp_original,exp_para);
-%%
-drp_out = drp_encode(AE_DRM,drp_measurement,exp_para);
-drp_tmp = drp_encode(AE_DRM,drp_predicted,exp_para);
-
-%% check indexing outcome
-check_indexing_result(indexResult_top.euMap,drp_original_top,exp_para);
 
 
 %% create boundary information
-[boundary_front,boundary_map_front,grain_map_front,icanny_front] = calc_gb(drp_original_top,exp_para);
-[boundary_back,boundary_map_back,grain_map_back,icanny_back] = calc_gb(drp_original_bot,exp_para);
-figure, imshow(grain_map_front)
-figure, imshow(grain_map_back)
+cannyValues = [5 10 15 20 30 40 50 60];
+for ii = 1:length(cannyValues)
+    cannyThres=cannyValues(ii);
+    [boundary_front,boundary_map_front,grain_map_front,icanny_front] = calc_gb(drp_original_top,exp_para,conn=8,canny_filter=cannyThres);
+    figure, imshow(grain_map_front)
+    exportgraphics(gcf,sprintf("front_threshold_%d.tif",cannyThres),"Resolution",300)
+    close all
+    [boundary_back,boundary_map_back,grain_map_back,icanny_back] = calc_gb(drp_original_bot,exp_para,conn=8,canny_filter=cannyThres);
+    figure, imshow(grain_map_back)
+    exportgraphics(gcf,sprintf("back_threshold_%d.tif",cannyThres),"Resolution",300)
+    close all
+    fprintf("threshold %d GB detection finished.\n",cannyThres)
+end
+%% select boundaries
+cannyThres=15;
+connThres=4;
 
-% select boundaries
-[gb_corr, centroid_f, centroid_b] = pair_gbn(boundary_front, boundary_back, n_out=3);
+drp_reduced_top = drp_original_top;
+for ii = 1:size(drp_original_top,1)
+    for jj = 1:size(drp_original_top,2)
+        if ~indexed_top(ii,jj)
+            drp_reduced_top{ii,jj} = uint8(zeros(size(drp_original_top{1})));
+        end
+    end
+end
+fprintf("DRP masking finished!\n")
+[boundary_front,boundary_map_front,grain_map_front,icanny_front] = calc_gb( ...
+    drp_reduced_top,exp_para,conn=connThres,canny_filter=cannyThres);
+
+drp_reduced_bot = drp_original_bot;
+for ii = 1:size(drp_original_bot,1)
+    for jj = 1:size(drp_original_bot,2)
+        if ~indexed_bot(ii,jj)
+            drp_reduced_top{ii,jj} = uint8(zeros(size(drp_original_bot{1})));
+        end
+    end
+end
+fprintf("DRP masking finished!\n")
+[boundary_back,boundary_map_back,grain_map_back,icanny_back] = calc_gb( ...
+    drp_original_bot,exp_para,conn=connThres,canny_filter=cannyThres);
+
+%%
+[gb_corr, centroid_f, centroid_b] = pair_gbn(boundary_front, boundary_back, length_thres=5, n_out=3);
 
 figure, imshowpair(boundary_map_front>0,boundary_map_back>0);
 hold on
 % imshow(boundary_map_back);
-gb_corr_selected = gb_corr(gb_corr(:,1) > 0 & gb_corr(:,2) > 0,:);
+gb_corr_selected = gb_corr(gb_corr(:,1) > 0 & (gb_corr(:,2)>0|gb_corr(:,3)>0|gb_corr(:,4)>0), :);
+gb_corr_selected = filterGBCorr(gb_corr_selected);
 for ii = 1:length(gb_corr_selected)
     idx_1 = gb_corr_selected(ii,1);
-    idx_2 = gb_corr_selected(ii,2);
-%     if idx_2 == 0
-%         continue
-%     end
+    if gb_corr_selected(ii,2) ~= 0
+        idx_2 = gb_corr_selected(ii,2);
+    elseif gb_corr_selected(ii,3) ~= 0
+        idx_2 = gb_corr_selected(ii,3);
+    else
+        idx_2 = gb_corr_selected(ii,4);
+    end
     line([centroid_f(idx_1,2),centroid_b(idx_2,2)],...
         [centroid_f(idx_1,1),centroid_b(idx_2,1)],'Color','w','LineWidth',3)
 end
@@ -125,7 +174,7 @@ hold off
 
 %
 figure, hold on
-nn = length(GBC);
+nn = size(GBC,1);
 cmap = colormap(hot);
 for ii = 1:length(GBC)
     len_front = length(GBC{ii,1});
@@ -163,7 +212,7 @@ xticks([])
 yticks([])
 %
 thickpxlratio = ceil(size(drp_original_top,1)/15);
-for ii = 1:length(GBC)
+for ii = 1:size(GBC,1)
     trace_top = GBC{ii,6};
     trace_bot = GBC{ii,7};
     inclination = zeros(length(trace_top),3);
@@ -520,7 +569,7 @@ function [GBC,EUmap_front,EUmap_back] = calc_gbc(gb_corr,boundary_front,boundary
     
     for idx = 1:num_gb
         idx_front = gb_corr(idx,1);
-        idx_back = gb_corr(idx,2);
+        idx_back = gb_corr(idx,find(gb_corr(idx,2:end)~=0,1)+1);
         GBC{idx,1} = boundary_front.PixelList{idx_front};
         GBC{idx,2} = boundary_back.PixelList{idx_back};
         % grain information
@@ -776,4 +825,68 @@ function plotBox(lcorner, a, b, c, options)
     Vertices=[V1 V2 V3] + lcorner;
     patch(gca,'Faces',F,'Vertices',Vertices,'FaceColor',options.color, ...
         'FaceAlpha',options.facealpha,'EdgeColor','k','LineWidth',3); 
+end
+
+
+function [gb_corr_filtered] = filterGBCorr(gb_corr_selected)
+
+gb_corr_filtered = zeros(size(gb_corr_selected,1),2);
+
+for ii = 1:size(gb_corr_selected,1)
+    idx_1 = gb_corr_selected(ii,1);
+    % idx_list = gb_corr_selected(ii,2:end);
+    idx_2 = 0;
+    for jj = 2:size(gb_corr_selected,2)
+        if gb_corr_selected == 0
+            continue
+        else
+            if ismember(gb_corr_selected(ii,jj),gb_corr_filtered(:,2))
+                continue
+            else
+                idx_2 = gb_corr_selected(ii,jj);
+                break
+            end
+        end
+    end
+    if idx_2 == 0
+        gb_corr_filtered(ii,1) = 0;
+    else
+        gb_corr_filtered(ii,1) = idx_1;
+        gb_corr_filtered(ii,2) = idx_2;
+    end
+end
+
+rowsNotAllZeor = ~all(gb_corr_filtered==0,2);
+gb_corr_filtered = gb_corr_filtered(rowsNotAllZeor,:);
+
+end
+
+
+function indexed_clean = filterIndexed(drp_original, options)
+    arguments
+        drp_original
+        options.val_thres (1,1) double = 2.2e4
+    end
+    notIndexed_top = cellfun(@(c) sum(c(:)), drp_original);
+    indexed_clean = notIndexed_top > options.val_thres;
+    cc = bwconncomp(~indexed_clean);
+    sizeObj = cellfun(@(c) length(c), cc.PixelIdxList);
+    idxObj = find(sizeObj == max(sizeObj));
+    for ii = 1:cc.NumObjects
+        if ii == idxObj
+            continue
+        else
+            indexed_clean(cc.PixelIdxList{ii}) = 1;
+        end
+    end
+    cc = bwconncomp(indexed_clean);
+    sizeObj = cellfun(@(c) length(c), cc.PixelIdxList);
+    idxObj = find(sizeObj == max(sizeObj));
+    for ii = 1:cc.NumObjects
+        if ii == idxObj
+            continue
+        else
+            indexed_clean(cc.PixelIdxList{ii}) = 0;
+        end
+    end
 end
