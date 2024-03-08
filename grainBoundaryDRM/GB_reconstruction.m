@@ -61,8 +61,8 @@ for ii = 1:length(GBC)
     color_rgb = cmap(fix(GBC{ii,5}/63*256),:);
     scatter3(GB_voxel{ii,1},GB_voxel{ii,2},GB_voxel{ii,3},1,color_rgb)
 
-    % blue GB traces
-    % scatter3(GB_voxel{ii,1},GB_voxel{ii,2},GB_voxel{ii,3},1,"blue")
+    % black GB traces
+    % scatter3(GB_voxel{ii,1},GB_voxel{ii,2},GB_voxel{ii,3},1,"black")
 
 end
 
@@ -72,7 +72,7 @@ zlim([-1 thickpxlratio+1])
 ylim([-1 size(drp_original_top,2)+1])
 set(gca,'visible','off')
 
-
+%%
 img_front = plot_ipf_map(index_result_top.EUmap);
 img_back = plot_ipf_map(index_result_bot.EUmap);
 [width, height, ~] = size(img_front);
@@ -91,7 +91,7 @@ z = [zPlane,zPlane;zPlane,zPlane];
 img_front = cat(3,img_front(:,:,1).',img_front(:,:,2).',img_front(:,:,3).');
 
 surf(x,y,z,img_front,'FaceColor','texturemap',FaceAlpha=0.3,EdgeColor='none')
-
+view(3)
 %%
 function plotCube(center, l, options)
     arguments
