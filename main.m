@@ -6,6 +6,7 @@ exp_para.ph_num = 72;
 exp_para.ph_min = 0;
 exp_para.ph_max = 355;
 exp_para.faceting = [1 0 0];
+% for aluminum, the fitting parameters:
 exp_para.fitting_para = [1, 0.6, 20, 6, 0.8, 8];
 % for nickel, the fitting parameters:
 % exp_para.fitting_para = [1 0.6 25 6 0.8 8];
@@ -69,6 +70,7 @@ toc
 [n1,n2] = size(drp_original);
 % non_index = ones(n1,n2,'logical'); % 1 for indexed; 0 for non-indexed
 index_sum = zeros(n1,n2);
+
 for ii = 1:n1
     for jj = 1:n2
         index_num(ii,jj) = sum(drp_original{ii,jj},'all');
@@ -85,7 +87,8 @@ figure, imshow(non_index)
 % [ebsd_DRM] = plot_ipf_DRM(index_result.EUmap, 'Ni', nonindex=ones(size(index_result.EUmap)));
 figure, imshow(plot_ipf_map(index_result.EUmap))
 %% check indexing results
-[drp_measurement, drp_predicted, x, y] = check_indexing_result(index_result.EUmap,drp_original,exp_para);
+[drp_measurement, drp_predicted, x, y] = check_indexing_result( ...
+    index_result.EUmap,drp_original,exp_para);
 %%
 drp_out = drp_encode(AE_DRM,drp_measurement,exp_para);
 drp_tmp = drp_encode(AE_DRM,drp_predicted,exp_para);
